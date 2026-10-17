@@ -69,17 +69,29 @@ async function searchSearXNG(args: SearXNGArgs, externalSignal?: AbortSignal): P
 
     const fullUrl = `${searxngUrl}?${params.toString()}`
 
+    // Basic auth: the instance URL may embed user:password@ credentials
+    // (https://user:password@host/search). WHATWG fetch ignores
+    // URL-embedded credentials, so they are sent as an Authorization
+    // header instead.
+    const endpoint = new URL(fullUrl)
+    const headers: Record<string, string> = {
+      "User-Agent": "OpenCode-SearXNG-Tool/1.0",
+      Accept: "application/json",
+    }
+    if (endpoint.username || endpoint.password) {
+      headers.Authorization = `Basic ${btoa(`${endpoint.username}:${endpoint.password}`)}`
+      endpoint.username = ""
+      endpoint.password = ""
+    }
+
     // 10 second timeout, combined with the session signal when OpenCode V2 provides one
     const timeoutSignal = AbortSignal.timeout(10_000)
     const signal = externalSignal ? AbortSignal.any([timeoutSignal, externalSignal]) : timeoutSignal
 
     // Make the API request
-    const response = await fetch(fullUrl, {
+    const response = await fetch(endpoint.toString(), {
       method: "GET",
-      headers: {
-        "User-Agent": "OpenCode-SearXNG-Tool/1.0",
-        Accept: "application/json",
-      },
+      headers,
       signal,
     })
 
