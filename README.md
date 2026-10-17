@@ -100,6 +100,16 @@ To use a different SearXNG instance, modify the `searxngUrl` in `.opencode/tool/
 const searxngUrl = "http://your-searxng-instance.com/search"
 ```
 
+### Private Instances Behind Basic Auth
+
+Many self-hosted SearXNG instances are protected with basic auth. Embed the credentials in the URL using the standard `user:password@` syntax:
+
+```typescript
+const searxngUrl = "https://user:password@your-private-instance.com/search"
+```
+
+The tool extracts the credentials and sends them as an `Authorization: Basic ...` header. This is required because WHATWG `fetch` (used by OpenCode's runtime) silently ignores URL-embedded credentials. Instances without credentials work unchanged.
+
 ## Search Tips
 
 ### Effective Queries
