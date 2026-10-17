@@ -1,4 +1,4 @@
-import { tool, type ToolDefinition } from "@opencode-ai/plugin"
+import { tool } from "@opencode-ai/plugin"
 
 interface SearchResult {
   title: string
@@ -25,7 +25,7 @@ interface FormattedResponse {
   formattedResults: string
 }
 
-const searxngSearch: ToolDefinition = tool({
+export default tool({
   description: "Search the internet using SearXNG service. Returns up to 10 web search results with titles, URLs, and snippets.",
   args: {
     query: tool.schema
@@ -84,27 +84,14 @@ const searxngSearch: ToolDefinition = tool({
 
       const fullUrl = `${searxngUrl}?${params.toString()}`
 
-      // Build request headers. SearXNG instances may be protected with
-      // basic auth, in which case the credentials can be embedded in the
-      // searxngUrl (https://user:password@host/search). WHATWG fetch
-      // ignores URL-embedded credentials, so they are sent as an explicit
-      // Authorization header instead.
-      const endpoint = new URL(fullUrl)
-      const headers: Record<string, string> = {
-        "User-Agent": "OpenCode-SearXNG-Tool/1.0",
-        Accept: "application/json",
-      }
-      if (endpoint.username || endpoint.password) {
-        headers.Authorization = `Basic ${btoa(`${endpoint.username}:${endpoint.password}`)}`
-        endpoint.username = ""
-        endpoint.password = ""
-      }
-
-      // Make the API request (10 second timeout)
-      const response = await fetch(endpoint.toString(), {
+      // Make the API request
+      const response = await fetch(fullUrl, {
         method: "GET",
-        headers,
-        signal: AbortSignal.timeout(10_000),
+        headers: {
+          "User-Agent": "OpenCode-SearXNG-Tool/1.0",
+          Accept: "application/json",
+        },
+        timeout: 10000, // 10 second timeout
       })
 
       if (!response.ok) {
@@ -163,5 +150,3 @@ const searxngSearch: ToolDefinition = tool({
     }
   },
 })
-
-export default searxngSearch
