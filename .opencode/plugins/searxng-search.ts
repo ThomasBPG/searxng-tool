@@ -13,7 +13,7 @@ interface SearXNGResponse {
     title: string
     url: string
     content: string
-    engine?: string[]
+    engine?: string
   }>
   number_of_results?: number
   query?: string
@@ -110,7 +110,7 @@ async function searchSearXNG(args: SearXNGArgs, externalSignal?: AbortSignal): P
         title: result.title,
         url: result.url,
         snippet: result.content,
-        engine: result.engine?.[0],
+        engine: result.engine,
       }))
 
     // Format results for human readability
